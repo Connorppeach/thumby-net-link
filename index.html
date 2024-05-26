@@ -24,7 +24,7 @@
     })
     peer.on('open', function(id) {
 	console.log('My peer ID is: ' + id);
-	document.getElementById("pid").innerHTML = "send this id to whoever you want to play with, and have them paste it in the text box: "+id
+	document.getElementById("pid").innerHTML = "step 1: send this id to whoever you want to play with, and have them paste it in the text box and hit connect: \n"+ id + "\nONLY ONE PERSON NEEDS TO DO THIS STEP 1\n\nstep 2(both people should complete this step): hit connect thumby, and select your thumby\n\nstep 3: enjoy!"
     });
     // on open will be launch when you successfully connect to PeerServer
     var conn = false;
