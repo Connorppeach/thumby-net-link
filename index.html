@@ -5,11 +5,11 @@
 <body>
   <button id="connect-button" type="button" onclick=getReader()>Connect Thumby</button>
 
-  <p id="pid">generating peer id please wait</p>
 
-  <textarea cols=38 id="texarea"></textarea>n
+  <textarea cols=38 id="texarea"></textarea>
   <button id="connect-toserver" type="button" onclick=connectServer()>Connect to server</button>
-
+  <p>or </p>
+  <a href="/bigserver.html">host a server</a>
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
   <script>
@@ -23,20 +23,11 @@
 	}	]}, */'debug': 3 } )
     peer.on('open', function(id) {
 	console.log('My peer ID is: ' + id);
-	document.getElementById("pid").innerHTML = "step 1: send this id to whoever you want to play with, and have them paste it in the text box and hit connect: <br>"+ id + "<br>ONLY ONE PERSON NEEDS TO DO THIS STEP 1<br><br>step 2(both people should complete this step): hit connect thumby, and select your thumby<br><br>step 3: enjoy!"
     });
     // on open will be launch when you successfully connect to PeerServer
     var conn = false;
     var writer
     var reader
-    peer.on('connection', function(conn2) {
-	conn = conn2
-	console.log("open")
-	conn.on('data', function(data) {
-	    console.log(data)
-	    writeChunks(data);
-	});
-    })
     function connectServer() {
 	
 	conn = peer.connect(document.getElementById("texarea").value);
@@ -54,7 +45,7 @@
     }
     async function getReader() {
         port = await navigator.serial.requestPort({});
-        await port.open({ baudRate: 115200 });
+        await port.open({ baudRate: 1152002 });
 
 	writer = port.writable.getWriter();
 	reader = port.readable.getReader();

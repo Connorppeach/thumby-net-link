@@ -6,9 +6,9 @@
   <button id="connect-button" type="button" onclick=getReader()>Connect Thumby</button>
 
   <p id="pid">generating peer id please wait</p>
+  <p>or </p>
+  <a href="/index.html">connect to a server</a>
 
-  <textarea cols=38 id="texarea"></textarea>n
-  <button id="connect-toserver" type="button" onclick=connectServer()>Connect to server</button>
 
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
@@ -23,7 +23,7 @@
 	}	]}, */'debug': 3 } )
     peer.on('open', function(id) {
 	console.log('My peer ID is: ' + id);
-	document.getElementById("pid").innerHTML = "step 1: send this id to everyone you want to play with, and have them paste it in the text box and hit connect: <br>"+ id + "<br>ONLY ONE PERSON NEEDS TO DO THIS STEP 1<br><br>step 2(both people should complete this step): hit connect thumby, and select your thumby<br><br>step 3: enjoy!"
+	document.getElementById("pid").innerHTML = "step 1: send this id to everyone you want to play with, and have them paste it in the text box and hit connect: <br>"+ id + "<br><br>step 2(everyone should complete this step): hit connect thumby, and select your thumby<br><br>step 3: enjoy!"
     });
     // on open will be launch when you successfully connect to PeerServer
     var conn = [];
@@ -31,28 +31,24 @@
     var writer
     var reader
     peer.on('connection', function(conn2) {
-	conn.append(conn2)
-	console.log("open")
 	conn2.on('data', function(data) {
+	    for (var i = 0; i < conn.length; i++) {
+		if(i == conn2)
+		    continue;
+		console.log(conn[i])
+		try {
+		    conn[i].send(line);
+		} catch (e) {
+		    conn.splice(i, 1);
+		    console.log(e)
+		}
+	    }
 	    console.log(data)
 	    writeChunks(data);
 	});
+	conn.push(conn2)
+	console.log("open")
     })
-    function connectServer() {
-	
-	pconn = peer.connect(document.getElementById("texarea").value);
-	pconn.on('open', function() {
-	    console.log("open")
-	    // Receive messages
-
-	    // Send messages
-	});
-	pconn.on('data', function(data) {
-	    console.log(data)
-	    writeChunks(data);
-	});
-
-    }
     async function getReader() {
         port = await navigator.serial.requestPort({});
         await port.open({ baudRate: 1152002 });
@@ -64,15 +60,18 @@
 	    try{ 
 		line = await readLine(reader);
 		console.log(line)
-		if(pcon)
-		    pcon.send(line)
-		else
-		    for (conn2 in conn) {
-			conn2.send(line);
+		for (var i = 0; i < conn.length; i++) {
+		    console.log(conn[i])
+		    try {
+			conn[i].send(line);
+		    } catch (e) {
+			conn.splice(i, 1);
+			console.log(e)
 		    }
+		}
 	    }
 	    catch (e) {
-
+		console.log(e)
 	    }
 	    await new Promise(r => setTimeout(r, 10));
 	}
