@@ -58,14 +58,12 @@
 
 	writer = port.writable.getWriter();
 	reader = port.readable.getReader();
-	await writeChunks("CONNECT\n")
 
 	while(1) {
 	    line = await readLine(reader);
-	    console.log(line)
 	    conn.send(line);
 
-	    await new Promise(r => setTimeout(r, 1000));
+	    await new Promise(r => setTimeout(r, 10));
 	}
 	
 
