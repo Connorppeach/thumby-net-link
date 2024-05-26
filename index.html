@@ -1,0 +1,94 @@
+<title>Analog Read Serial</title>
+</head>
+<body>
+  <button id="connect-button" type="button" onclick=getReader()>Connect Thumby</button>
+
+  <p id="pid">generating peer id please wait</p>
+
+  <textarea cols=38 id="texarea"></textarea>
+  <button id="connect-toserver" type="button" onclick=connectServer()>Connect to server</button>
+
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+  <script>
+    let lineBuffer = '';
+    let latestValue = 0;
+    var peer = new Peer({
+	config: {'iceServers': [ {
+	    url: 'turn:openrelay.metered.ca:80',
+	    username: 'openrelayproject',
+	    credential: 'openrelayproject'
+	}	]} /* Sample servers, please use appropriate ones */
+    })
+    peer.on('open', function(id) {
+	console.log('My peer ID is: ' + id);
+	document.getElementById("pid").innerHTML = "send this id to whoever you want to play with, and have them paste it in the text box: "+id
+    });
+    // on open will be launch when you successfully connect to PeerServer
+    var conn = false;
+    var writer
+    var reader
+    peer.on('connection', function(conn2) {
+	conn = conn2
+	conn.on('data', function(data) {
+	    console.log(data)
+	    writeChunks(data);
+	});
+    })
+    function connectServer() {
+	
+	conn = peer.connect(document.getElementById("texarea").value);
+	conn.on('open', function() {
+	    console.log("open")
+	    // Receive messages
+
+	    // Send messages
+	});
+	conn.on('data', function(data) {
+	    console.log(data)
+	    writeChunks(data);
+	});
+
+    }
+    async function getReader() {
+        port = await navigator.serial.requestPort({});
+        await port.open({ baudRate: 9600 });
+
+	writer = port.writable.getWriter();
+	reader = port.readable.getReader();
+	await writeChunks("CONNECT\n")
+
+	while(1) {
+	    line = await readLine(reader);
+	    console.log(line)
+	    conn.send(line);
+
+	    await writeChunks("Hello, Thumby!\n")
+	    await new Promise(r => setTimeout(r, 1000));
+	}
+	
+
+
+    }
+    async function writeChunks(data) {
+	let utf8Encode = new TextEncoder();
+	data2 = utf8Encode.encode(data);
+
+	
+	await writer.write(data2);
+    }
+    async function readLine(reader) {
+	var ReceivedData = "";
+	while (true){
+	    const { value, done } = await reader.read();
+	    // value is a string.
+	    ReceivedData += String.fromCharCode.apply(null, value);
+	    if(ReceivedData.includes('\n')){
+		return ReceivedData
+	    }
+	    if (done) {
+		break;
+	    }
+	}
+    }
+  </script>
