@@ -7,7 +7,7 @@
 
   <p id="pid">generating peer id please wait</p>
 
-  <textarea cols=38 id="texarea"></textarea>
+  <textarea cols=38 id="texarea"></textarea>n
   <button id="connect-toserver" type="button" onclick=connectServer()>Connect to server</button>
 
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
@@ -16,12 +16,11 @@
     let lineBuffer = '';
     let latestValue = 0;
     var peer = new Peer({
-	config: {'iceServers': [ {
+	/*config: {'iceServers': [ {
 	    url: 'turn:openrelay.metered.ca:80',
 	    username: 'openrelayproject',
 	    credential: 'openrelayproject'
-	}	]} /* Sample servers, please use appropriate ones */
-    })
+	}	]}, */'debug': 3 } )
     peer.on('open', function(id) {
 	console.log('My peer ID is: ' + id);
 	document.getElementById("pid").innerHTML = "step 1: send this id to whoever you want to play with, and have them paste it in the text box and hit connect: <br>"+ id + "<br>ONLY ONE PERSON NEEDS TO DO THIS STEP 1<br><br>step 2(both people should complete this step): hit connect thumby, and select your thumby<br><br>step 3: enjoy!"
@@ -32,6 +31,7 @@
     var reader
     peer.on('connection', function(conn2) {
 	conn = conn2
+	console.log("open")
 	conn.on('data', function(data) {
 	    console.log(data)
 	    writeChunks(data);
