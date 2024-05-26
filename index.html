@@ -60,9 +60,15 @@
 	reader = port.readable.getReader();
 
 	while(1) {
+	    try{ 
 	    line = await readLine(reader);
-	    conn.send(line);
+	    
+		conn.send(line);
 
+	    }
+	    catch (e) {
+
+	    }
 	    await new Promise(r => setTimeout(r, 10));
 	}
 	
@@ -82,7 +88,7 @@
 	    const { value, done } = await reader.read();
 	    // value is a string.
 	    ReceivedData += String.fromCharCode.apply(null, value);
-	    if(ReceivedData.includes('\n')){
+	    if(ReceivedData.includes('\n')) {
 		return ReceivedData
 	    }
 	    if (done) {
