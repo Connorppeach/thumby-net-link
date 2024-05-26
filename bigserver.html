@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<title>thumb link</title>
+</head>
+<body>
+  <button id="connect-button" type="button" onclick=getReader()>Connect Thumby</button>
+
+  <p id="pid">generating peer id please wait</p>
+
+  <textarea cols=38 id="texarea"></textarea>n
+  <button id="connect-toserver" type="button" onclick=connectServer()>Connect to server</button>
+
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+  <script>
+    let lineBuffer = '';
+    let latestValue = 0;
+    var peer = new Peer({
+	/*config: {'iceServers': [ {
+	    url: 'turn:openrelay.metered.ca:80',
+	    username: 'openrelayproject',
+	    credential: 'openrelayproject'
+	}	]}, */'debug': 3 } )
+    peer.on('open', function(id) {
+	console.log('My peer ID is: ' + id);
+	document.getElementById("pid").innerHTML = "step 1: send this id to everyone you want to play with, and have them paste it in the text box and hit connect: <br>"+ id + "<br>ONLY ONE PERSON NEEDS TO DO THIS STEP 1<br><br>step 2(both people should complete this step): hit connect thumby, and select your thumby<br><br>step 3: enjoy!"
+    });
+    // on open will be launch when you successfully connect to PeerServer
+    var conn = [];
+    var pcon = false;
+    var writer
+    var reader
+    peer.on('connection', function(conn2) {
+	conn.append(conn2)
+	console.log("open")
+	conn2.on('data', function(data) {
+	    console.log(data)
+	    writeChunks(data);
+	});
+    })
+    function connectServer() {
+	
+	pconn = peer.connect(document.getElementById("texarea").value);
+	pconn.on('open', function() {
+	    console.log("open")
+	    // Receive messages
+
+	    // Send messages
+	});
+	pconn.on('data', function(data) {
+	    console.log(data)
+	    writeChunks(data);
+	});
+
+    }
+    async function getReader() {
+        port = await navigator.serial.requestPort({});
+        await port.open({ baudRate: 1152002 });
+
+	writer = port.writable.getWriter();
+	reader = port.readable.getReader();
+
+	while(1) {
+	    try{ 
+		line = await readLine(reader);
+		console.log(line)
+		if(pcon)
+		    pcon.send(line)
+		else
+		    for (conn2 in conn) {
+			conn2.send(line);
+		    }
+	    }
+	    catch (e) {
+
+	    }
+	    await new Promise(r => setTimeout(r, 10));
+	}
+	
+
+
+    }
+    async function writeChunks(data) {
+	let utf8Encode = new TextEncoder();
+	data2 = utf8Encode.encode(data);
+
+	
+	await writer.write(data2);
+    }
+    async function readLine(reader) {
+	var ReceivedData = "";
+	while (true){
+	    const { value, done } = await reader.read();
+	    // value is a string.
+	    ReceivedData += String.fromCharCode.apply(null, value);
+	    if(ReceivedData.includes('\n')) {
+		return ReceivedData
+	    }
+	    if (done) {
+		break;
+	    }
+	}
+    }
+  </script>
+</html>
