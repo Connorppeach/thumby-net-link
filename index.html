@@ -54,15 +54,15 @@
     }
     async function getReader() {
         port = await navigator.serial.requestPort({});
-        await port.open({ baudRate: 9600 });
+        await port.open({ baudRate: 115200 });
 
 	writer = port.writable.getWriter();
 	reader = port.readable.getReader();
 
 	while(1) {
 	    try{ 
-	    line = await readLine(reader);
-	    
+		line = await readLine(reader);
+		console.log(line)
 		conn.send(line);
 
 	    }
