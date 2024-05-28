@@ -33,7 +33,7 @@
     peer.on('connection', function(conn2) {
 	conn2.on('data', function(data) {
 	    for (var i = 0; i < conn.length; i++) {
-		if(i == conn2)
+		if(conn[i] == conn2)
 		    continue;
 		try {
 		    conn[i].send(line);
@@ -43,7 +43,7 @@
 	    }
 	    console.log(data)
 	    if(writer && reader)
-	    writeChunks(data);
+		writeChunks(data);
 	});
 	conn.push(conn2)
 	console.log("open")
