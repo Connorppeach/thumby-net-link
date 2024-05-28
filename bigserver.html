@@ -35,11 +35,7 @@
 	    for (var i = 0; i < conn.length; i++) {
 		if(conn[i] == conn2)
 		    continue;
-		try {
-		    conn[i].send(line);
-		} catch (e) {
-		    conn.splice(i, 1);
-		}
+		conn[i].send(line);
 	    }
 	    console.log(data)
 	    if(writer && reader)
