@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
-<title>thumb link</title>
+  <title>thumb link</title>
 </head>
 <body>
-  <button id="connect-button" type="button" onclick=getReader()>Connect Thumby</button>
 
   <p id="pid">generating peer id please wait</p>
   <p>or </p>
@@ -17,19 +16,16 @@
     let latestValue = 0;
     var peer = new Peer({
 	/*config: {'iceServers': [ {
-	    url: 'turn:openrelay.metered.ca:80',
-	    username: 'openrelayproject',
-	    credential: 'openrelayproject'
-	}	]}, */'debug': 3 } )
+	  url: 'turn:openrelay.metered.ca:80',
+	  username: 'openrelayproject',
+	  credential: 'openrelayproject'
+	  }	]}, */'debug': 3 } )
     peer.on('open', function(id) {
 	console.log('My peer ID is: ' + id);
 	document.getElementById("pid").innerHTML = "step 1: send this id to everyone you want to play with, and have them paste it in the text box and hit connect: <br>"+ id + "<br><br>step 2(everyone should complete this step): hit connect thumby, and select your thumby<br><br>step 3: enjoy!"
     });
     // on open will be launch when you successfully connect to PeerServer
     var conn = [];
-    var pcon = false;
-    var writer
-    var reader
     peer.on('connection', function(conn2) {
 	conn2.on('data', function(data) {
 	    for (var i = 0; i < conn.length; i++) {
@@ -38,58 +34,10 @@
 		conn[i].send(data);
 	    }
 	    console.log(data)
-	    if(writer && reader)
-		writeChunks(data);
 	});
 	conn.push(conn2)
 	console.log("open")
     })
-    async function getReader() {
-        port = await navigator.serial.requestPort({});
-        await port.open({ baudRate: 1152002 });
 
-	writer = port.writable.getWriter();
-	reader = port.readable.getReader();
-
-	while(1) {
-	    try{ 
-		line = await readLine(reader);
-		for (var i = 0; i < conn.length; i++) {
-		    try {
-			conn[i].send(line);
-		    } catch (e) {
-			conn = conn.splice(i, 1);
-		    }
-		}
-	    }
-	    catch (e) {
-	    }
-	    await new Promise(r => setTimeout(r, 10));
-	}
-	
-
-
-    }
-    async function writeChunks(data) {
-	let utf8Encode = new TextEncoder();
-	data2 = utf8Encode.encode(data);
-
-	
-	await writer.write(data2);
-    }
-    async function readLine(reader) {
-	var ReceivedData = "";
-	while (true){
-	    const { value, done } = await reader.read();
-	    // value is a string.
-	    ReceivedData += String.fromCharCode.apply(null, value);
-	    if(ReceivedData.includes('\n')) {
-		return ReceivedData
-	    }
-	    if (done) {
-		break;
-	    }
-	}
-    }
-  </script>
+    </script>
 </html>
