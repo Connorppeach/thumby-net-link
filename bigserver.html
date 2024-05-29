@@ -20,6 +20,7 @@
 	  username: 'openrelayproject',
 	  credential: 'openrelayproject'
 	  }	]}, */'debug': 3 } )
+    
     peer.on('open', function(id) {
 	console.log('My peer ID is: ' + id);
 	document.getElementById("pid").innerHTML = "step 1: send this id to everyone you want to play with, and have them paste it in the text box and hit connect: <br>"+ id + "<br><br>step 2(everyone should complete this step): hit connect thumby, and select your thumby<br><br>step 3: enjoy!"
@@ -28,16 +29,69 @@
     var conn = [];
     peer.on('connection', function(conn2) {
 	conn2.on('data', function(data) {
-	    for (var i = 0; i < conn.length; i++) {
-		if(conn[i] == conn2)
-		    continue;
-		conn[i].send(data);
+	    type = data.split("")[0]
+	    if(type == "!") {
+		sendtoeveryone(conn2, data.substring(1))
 	    }
+	    if(type == "\"") {
+		sendtorandom(conn2, data.substring(1))
+	    }
+	    if(type == "#") {
+		sendtonumber(conn2, data.substring(1))
+	    }
+	    if(type == "$") {
+		sendplist(conn2)
+	    }
+	    
 	    console.log(data)
 	});
+		 
 	conn.push(conn2)
 	console.log("open")
     })
+    function sendtonumber(conn2, data) {
+	var e = data.split("\r")
+	conn[parseInt(e)].send("!"+data.replace(e[0], ""))
+	
+    }
 
+    function sendplist(conn2) {
+	f = "["
+	for(var i = 0; i < conn.length; i++)
+	    f += conn ? "1, " : "0, "
+	f = f.substring(0, f.length - 2) + "]"
+	console.log(f)
+	conn2.send("$" + btoa(f))
+	
+    }
+
+    
+    
+    function sendtorandom(conn2, data) {
+	var c = 0;
+	for (var i = 0; i < conn.length; i++) {
+	    if(conn[i] == conn2 || !conn[i])
+		continue;
+	    else
+		c++
+	}
+	    
+	var i = Math.floor(Math.random() * c);
+	if(conn[i] != conn2)
+	    conn[i].send("!"+data)
+    }
+    function sendtoeveryone(conn2, data) {
+	for (var i = 0; i < conn.length; i++) {
+	    if(conn[i] == conn2)
+		continue;
+	    try {
+		if(conn[i])
+		    conn[i].send("!"+data);
+		
+	    } catch(e) {
+		conn[i] = false;
+	    }
+	}
+    }
     </script>
 </html>
