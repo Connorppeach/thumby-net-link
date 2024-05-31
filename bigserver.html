@@ -1,97 +1,155 @@
-<!DOCTYPE html>
-<html lang="en">
-  <title>thumb link</title>
-</head>
-<body>
+    <!DOCTYPE html>
+    <html lang="en">
+    <title>thumb link</title>
+    </head>
+    <body>
 
-  <p id="pid">generating peer id please wait</p>
-  <p>or </p>
-  <a href="/thumby-net-link/index.html">connect to a server</a>
+    <p id="pid">generating peer id please wait</p>
+    <p>or </p>
+    <a href="/thumby-net-link/index.html">connect to a server</a>
 
 
-  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
-  <script>
+    <script>
     let lineBuffer = '';
-    let latestValue = 0;
-    var peer = new Peer({
-	/*config: {'iceServers': [ {
-	  url: 'turn:openrelay.metered.ca:80',
-	  username: 'openrelayproject',
-	  credential: 'openrelayproject'
-	  }	]}, */'debug': 3 } )
-    
-    peer.on('open', function(id) {
-	console.log('My peer ID is: ' + id);
-	document.getElementById("pid").innerHTML = "step 1: send this id to everyone you want to play with, and have them paste it in the text box and hit connect: <br>"+ id + "<br><br>step 2(everyone should complete this step): hit connect thumby, and select your thumby<br><br>step 3: enjoy!"
+let latestValue = 0;
+var peer = new Peer({
+    /*config: {'iceServers': [ {
+      url: 'turn:openrelay.metered.ca:80',
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
+      }	]}, */'debug': 2 } )
+
+peer.on('open', function(id) {
+    console.log('My peer ID is: ' + id);
+    document.getElementById("pid").innerHTML = "step 1: send this id to everyone you want to play with, and have them paste it in the text box and hit connect: <br>"+ id + "<br><br>step 2(everyone should complete this step): hit connect thumby, and select your thumby<br><br>step 3: enjoy!"
+});
+// on open will be launch when you successfully connect to PeerServer
+var conn = [];
+var pdata = [];
+peer.on('connection', function(conn2) {
+    var currenti = conn.length
+    conn.push(conn2);
+    pdata.push("None");
+
+    conn2.on('data', function(data) {
+	type = data.split("")[0]
+	if(type == "!") {
+	    sendtoeveryone(conn2, data.substring(1))
+	}
+	if(type == "\"") {
+	    sendtorandom(conn2, data.substring(1))
+	}
+	if(type == "#") {
+	    sendtonumber(conn2, data.substring(1))
+	}
+
+	if(type == "$") {
+	    sendplist(conn2)
+	}
+	if(type == "%") {
+	    setpdata(conn2, data.substring(1))
+	}
+
+	if(type == "&") {
+	    sendpindex(conn2)
+	}
+	
+	console.log(data)
     });
-    // on open will be launch when you successfully connect to PeerServer
-    var conn = [];
-    peer.on('connection', function(conn2) {
-	conn2.on('data', function(data) {
-	    type = data.split("")[0]
-	    if(type == "!") {
-		sendtoeveryone(conn2, data.substring(1))
-	    }
-	    if(type == "\"") {
-		sendtorandom(conn2, data.substring(1))
-	    }
-	    if(type == "#") {
-		sendtonumber(conn2, data.substring(1))
-	    }
-	    if(type == "$") {
-		sendplist(conn2)
-	    }
-	    
-	    console.log(data)
-	});
-		 
-	conn.push(conn2)
-	console.log("open")
-    })
-    function sendtonumber(conn2, data) {
-	var e = data.split("\r")
-	conn[parseInt(e)].send("!"+data.replace(e[0], ""))
-	
-    }
-
-    function sendplist(conn2) {
-	f = "["
+    
+});
+function setpdata(conn2, data) {
+    if(data == "")
+	getpdata(conn2)
+    else
 	for(var i = 0; i < conn.length; i++)
-	    f += conn ? "1, " : "0, "
-	f = f.substring(0, f.length - 2) + "]"
-	console.log(f)
-	conn2.send("$" + btoa(f))
-	
-    }
+	    if(conn[i] === conn2) {
+		pdata[i] = atob(data)
+	    }
+    console.log(data)
+    
+}
 
+function sendtonumber(conn2, data) {
+    var e = data.split("\r")
+    conn[parseInt(e)].send("!"+data.replace(e[0], ""))
     
+}
+
+function sendplist(conn2) {
+    f = "["
+    for(var i = 0; i < conn.length; i++)
+	f += conn ? String(i) + ", " : "0, "
+    f = f.substring(0, f.length - 2) + "]"
+    console.log(f)
+    conn2.send("$" + btoa(f))
     
-    function sendtorandom(conn2, data) {
-	var c = 0;
-	for (var i = 0; i < conn.length; i++) {
-	    if(conn[i] == conn2 || !conn[i])
-		continue;
-	    else
-		c++
-	}
-	    
-	var i = Math.floor(Math.random() * c);
-	if(conn[i] != conn2)
-	    conn[i].send("!"+data)
+}
+
+function getpdata(conn2) {
+    f = "["
+    for(var i = 0; i < pdata.length; i++)
+	if(conn[i]) {
+	    f +=  pdata[i] + ", "  
+	} else
+	    f += "None, "  
+
+    f = f.substring(0, f.length - 2) + "]"
+    conn2.send("%" + btoa(f))
+    
+}
+
+function sendpindex(conn2) {
+    for (var i = 0; i < conn.length; i++) 
+	if(conn[i] === conn2)
+	    conn2.send("&"+btoa(i))
+    
+}
+
+
+
+
+function sendtorandom(conn2, data) {
+    var c = 0;
+    for (var i = 0; i < conn.length; i++) {
+	if(conn[i] === conn2 || !conn[i])
+	    continue;
+	else
+	    c++
     }
-    function sendtoeveryone(conn2, data) {
+    
+    var i = Math.floor(Math.random() * c);
+    if(conn[i] != conn2)
+	conn[i].send("!"+data)
+}
+function sendtoeveryone(conn2, data) {
+    for (var i = 0; i < conn.length; i++) {
+	if(conn[i] === conn2)
+	    continue;
+	try {
+	    if(conn[i])
+		conn[i].send("!"+data);
+	    
+	} catch(e) {
+	    conn[i] = false;
+	}
+    }
+}
+/*f()
+async function f() {
+    while(1) {
 	for (var i = 0; i < conn.length; i++) {
-	    if(conn[i] == conn2)
-		continue;
-	    try {
-		if(conn[i])
-		    conn[i].send("!"+data);
-		
-	    } catch(e) {
-		conn[i] = false;
+	    try{ 
+		conn[i].send("P");
+	    }
+	    catch (e) {
+		conn[i] = false
 	    }
 	}
+	await new Promise(r => setTimeout(r, 10));
     }
-    </script>
-</html>
+}*/
+</script>
+    </html>
